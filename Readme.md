@@ -96,3 +96,25 @@ _start:
     xor rdi, rdi        ; status 0
     syscall
 ```
+save and run
+
+```
+bash
+mkdir KetoRun
+cd KetoRun
+nano K.asm
+```
+run
+
+```
+bash
+sudo apt update
+sudo apt install nasm -y
+nasm -f elf64 K.asm -o K.o
+ld K.o -o keto.out
+```
+
+```
+bash
+./keto.out
+```
