@@ -67,3 +67,29 @@ The KLI output report on the screen combines both commands into a single, compre
 The KLI gives you the data you need to make fast, informed decisions.
 
 Do you have a specific food item you want to analyze, or would you like to update an entry in the **Standard Editor**?
+
+sample assembly program for checker:
+
+; File: K.asm
+; Keto Assembly Program — Linux x86_64 example
+; Author: Rushikesh Pundkar
+
+section .data
+    msg db "Keto Assembly Running Successfully!", 10   ; message + newline
+    len equ $ - msg
+
+section .text
+    global _start
+
+_start:
+    ; write(msg)
+    mov rax, 1          ; syscall: write
+    mov rdi, 1          ; stdout
+    mov rsi, msg        ; message address
+    mov rdx, len        ; message length
+    syscall
+
+    ; exit(0)
+    mov rax, 60         ; syscall: exit
+    xor rdi, rdi        ; status 0
+    syscall
