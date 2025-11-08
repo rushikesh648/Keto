@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII Character Lookup</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Space+Mono:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+            color: #1f2937;
+        }
+        .mono-font {
+            font-family: 'Space Mono', monospace;
+        }
+        .header-cell {
+            background-color: #3b82f6; /* Tailwind blue-500 */
+            color: white;
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            font-weight: 700;
+        }
+        .data-row:nth-child(even) {
+            background-color: #eff6ff; /* Tailwind blue-50 */
+        }
+        .data-cell {
+            padding: 0.5rem;
+            text-align: center;
+            border-bottom: 1px solid #d1d5db; /* Gray-300 */
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-[#3b82f6] mb-2">ASCII Character Lookup Table</h1>
+            <p class="text-lg text-gray-600">The standard 7-bit ASCII set (Codes 0 to 127) used to represent text.</p>
+        </header>
+
+        <!-- Search Input -->
+        <div class="mb-6">
+            <input type="text" id="search-input" placeholder="Search by character (e.g., 'A'), Decimal (e.g., 65), or Hex (e.g., 41)..." 
+                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm transition duration-150"
+                   oninput="filterTable()">
+        </div>
+
+        <!-- ASCII Table Container (Scrollable) -->
+        <div class="overflow-x-auto rounded-xl shadow-xl border border-gray-200">
+            <table id="ascii-table" class="min-w-full divide-y divide-gray-200 text-sm md:text-base">
+                <thead>
+                    <tr class="data-row">
+                        <th class="header-cell rounded-tl-xl w-1/4">Char</th>
+                        <th class="header-cell w-1/4">Decimal</th>
+                        <th class="header-cell w-1/4">Hex</th>
+                        <th class="header-cell rounded-tr-xl w-1/4">Binary (7-bit)</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <!-- Table Rows will be generated here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Data structure containing the standard ASCII codes (0-127)
+        // Control characters (0-31) and DEL (127) are represented by their abbreviations.
+        const ASCII_DATA = [
+            // Control Characters (0-31)
+            { char: 'NUL', dec: 0, hex: '00', category: 'control' }, { char: 'SOH', dec: 1, hex: '01', category: 'control' },
+            { char: 'STX', dec: 2, hex: '02', category: 'control' }, { char: 'ETX', dec: 3, hex: '03', category: 'control' },
+            { char: 'EOT', dec: 4, hex: '04', category: 'control' }, { char: 'ENQ', dec: 5, hex: '05', category: 'control' },
+            { char: 'ACK', dec: 6, hex: '06', category: 'control' }, { char: 'BEL', dec: 7, hex: '07', category: 'control' },
+            { char: 'BS', dec: 8, hex: '08', category: 'control' },  { char: 'HT', dec: 9, hex: '09', category: 'control' },
+            { char: 'LF', dec: 10, hex: '0A', category: 'control' }, { char: 'VT', dec: 11, hex: '0B', category: 'control' },
+            { char: 'FF', dec: 12, hex: '0C', category: 'control' }, { char: 'CR', dec: 13, hex: '0D', category: 'control' },
+            { char: 'SO', dec: 14, hex: '0E', category: 'control' }, { char: 'SI', dec: 15, hex: '0F', category: 'control' },
+            { char: 'DLE', dec: 16, hex: '10', category: 'control' }, { char: 'DC1', dec: 17, hex: '11', category: 'control' },
+            { char: 'DC2', dec: 18, hex: '12', category: 'control' }, { char: 'DC3', dec: 19, hex: '13', category: 'control' },
+            { char: 'DC4', dec: 20, hex: '14', category: 'control' }, { char: 'NAK', dec: 21, hex: '15', category: 'control' },
+            { char: 'SYN', dec: 22, hex: '16', category: 'control' }, { char: 'ETB', dec: 23, hex: '17', category: 'control' },
+            { char: 'CAN', dec: 24, hex: '18', category: 'control' }, { char: 'EM', dec: 25, hex: '19', category: 'control' },
+            { char: 'SUB', dec: 26, hex: '1A', category: 'control' }, { char: 'ESC', dec: 27, hex: '1B', category: 'control' },
+            { char: 'FS', dec: 28, hex: '1C', category: 'control' },  { char: 'GS', dec: 29, hex: '1D', category: 'control' },
+            { char: 'RS', dec: 30, hex: '1E', category: 'control' },  { char: 'US', dec: 31, hex: '1F', category: 'control' },
+
+            // Printable Characters (32-126)
+            { char: 'Space', dec: 32, hex: '20', category: 'symbol' },
+            { char: '!', dec: 33, hex: '21', category: 'symbol' }, { char: '"', dec: 34, hex: '22', category: 'symbol' },
+            { char: '#', dec: 35, hex: '23', category: 'symbol' }, { char: '$', dec: 36, hex: '24', category: 'symbol' },
+            { char: '%', dec: 37, hex: '25', category: 'symbol' }, { char: '&', dec: 38, hex: '26', category: 'symbol' },
+            { char: "'", dec: 39, hex: '27', category: 'symbol' }, { char: '(', dec: 40, hex: '28', category: 'symbol' },
+            { char: ')', dec: 41, hex: '29', category: 'symbol' }, { char: '*', dec: 42, hex: '2A', category: 'symbol' },
+            { char: '+', dec: 43, hex: '2B', category: 'symbol' }, { char: ',', dec: 44, hex: '2C', category: 'symbol' },
+            { char: '-', dec: 45, hex: '2D', category: 'symbol' }, { char: '.', dec: 46, hex: '2E', category: 'symbol' },
+            { char: '/', dec: 47, hex: '2F', category: 'symbol' },
+
+            // Digits (48-57)
+            { char: '0', dec: 48, hex: '30', category: 'digit' }, { char: '1', dec: 49, hex: '31', category: 'digit' },
+            { char: '2', dec: 50, hex: '32', category: 'digit' }, { char: '3', dec: 51, hex: '33', category: 'digit' },
+            { char: '4', dec: 52, hex: '34', category: 'digit' }, { char: '5', dec: 53, hex: '35', category: 'digit' },
+            { char: '6', dec: 54, hex: '36', category: 'digit' }, { char: '7', dec: 55, hex: '37', category: 'digit' },
+            { char: '8', dec: 56, hex: '38', category: 'digit' }, { char: '9', dec: 57, hex: '39', category: 'digit' },
+
+            // Symbols and Punctuation (58-64)
+            { char: ':', dec: 58, hex: '3A', category: 'symbol' }, { char: ';', dec: 59, hex: '3B', category: 'symbol' },
+            { char: '<', dec: 60, hex: '3C', category: 'symbol' }, { char: '=', dec: 61, hex: '3D', category: 'symbol' },
+            { char: '>', dec: 62, hex: '3E', category: 'symbol' }, { char: '?', dec: 63, hex: '3F', category: 'symbol' },
+            { char: '@', dec: 64, hex: '40', category: 'symbol' },
+
+            // Uppercase Letters (65-90)
+            { char: 'A', dec: 65, hex: '41', category: 'letter' }, { char: 'B', dec: 66, hex: '42', category: 'letter' },
+            { char: 'C', dec: 67, hex: '43', category: 'letter' }, { char: 'D', dec: 68, hex: '44', category: 'letter' },
+            { char: 'E', dec: 69, hex: '45', category: 'letter' }, { char: 'F', dec: 70, hex: '46', category: 'letter' },
+            { char: 'G', dec: 71, hex: '47', category: 'letter' }, { char: 'H', dec: 72, hex: '48', category: 'letter' },
+            { char: 'I', dec: 73, hex: '49', category: 'letter' }, { char: 'J', dec: 74, hex: '4A', category: 'letter' },
+            { char: 'K', dec: 75, hex: '4B', category: 'letter' }, { char: 'L', dec: 76, hex: '4C', category: 'letter' },
+            { char: 'M', dec: 77, hex: '4D', category: 'letter' }, { char: 'N', dec: 78, hex: '4E', category: 'letter' },
+            { char: 'O', dec: 79, hex: '4F', category: 'letter' }, { char: 'P', dec: 80, hex: '50', category: 'letter' },
+            { char: 'Q', dec: 81, hex: '51', category: 'letter' }, { char: 'R', dec: 82, hex: '52', category: 'letter' },
+            { char: 'S', dec: 83, hex: '53', category: 'letter' }, { char: 'T', dec: 84, hex: '54', category: 'letter' },
+            { char: 'U', dec: 85, hex: '55', category: 'letter' }, { char: 'V', dec: 86, hex: '56', category: 'letter' },
+            { char: 'W', dec: 87, hex: '57', category: 'letter' }, { char: 'X', dec: 88, hex: '58', category: 'letter' },
+            { char: 'Y', dec: 89, hex: '59', category: 'letter' }, { char: 'Z', dec: 90, hex: '5A', category: 'letter' },
+
+            // Symbols and Punctuation (91-96)
+            { char: '[', dec: 91, hex: '5B', category: 'symbol' }, { char: '\\', dec: 92, hex: '5C', category: 'symbol' },
+            { char: ']', dec: 93, hex: '5D', category: 'symbol' }, { char: '^', dec: 94, hex: '5E', category: 'symbol' },
+            { char: '_', dec: 95, hex: '5F', category: 'symbol' }, { char: '`', dec: 96, hex: '60', category: 'symbol' },
+
+            // Lowercase Letters (97-122)
+            { char: 'a', dec: 97, hex: '61', category: 'letter' }, { char: 'b', dec: 98, hex: '62', category: 'letter' },
+            { char: 'c', dec: 99, hex: '63', category: 'letter' }, { char: 'd', dec: 100, hex: '64', category: 'letter' },
+            { char: 'e', dec: 101, hex: '65', category: 'letter' }, { char: 'f', dec: 102, hex: '66', category: 'letter' },
+            { char: 'g', dec: 103, hex: '67', category: 'letter' }, { char: 'h', dec: 104, hex: '68', category: 'letter' },
+            { char: 'i', dec: 105, hex: '69', category: 'letter' }, { char: 'j', dec: 106, hex: '6A', category: 'letter' },
+            { char: 'k', dec: 107, hex: '6B', category: 'letter' }, { char: 'l', dec: 108, hex: '6C', category: 'letter' },
+            { char: 'm', dec: 109, hex: '6D', category: 'letter' }, { char: 'n', dec: 110, hex: '6E', category: 'letter' },
+            { char: 'o', dec: 111, hex: '6F', category: 'letter' }, { char: 'p', dec: 112, hex: '70', category: 'letter' },
+            { char: 'q', dec: 113, hex: '71', category: 'letter' }, { char: 'r', dec: 114, hex: '72', category: 'letter' },
+            { char: 's', dec: 115, hex: '73', category: 'letter' }, { char: 't', dec: 116, hex: '74', category: 'letter' },
+            { char: 'u', dec: 117, hex: '75', category: 'letter' }, { char: 'v', dec: 118, hex: '76', category: 'letter' },
+            { char: 'w', dec: 119, hex: '77', category: 'letter' }, { char: 'x', dec: 120, hex: '78', category: 'letter' },
+            { char: 'y', dec: 121, hex: '79', category: 'letter' }, { char: 'z', dec: 122, hex: '7A', category: 'letter' },
+
+            // Symbols and DEL (123-127)
+            { char: '{', dec: 123, hex: '7B', category: 'symbol' }, { char: '|', dec: 124, hex: '7C', category: 'symbol' },
+            { char: '}', dec: 125, hex: '7D', category: 'symbol' }, { char: '~', dec: 126, hex: '7E', category: 'symbol' },
+            { char: 'DEL', dec: 127, hex: '7F', category: 'control' }
+        ];
+
+        const tableBody = document.querySelector('#ascii-table tbody');
+
+        /**
+         * Converts a decimal number to a padded 7-bit binary string.
+         * @param {number} dec - The decimal value.
+         * @returns {string} The formatted 7-bit binary string (e.g., "100 0001").
+         */
+        function decTo7BitBinary(dec) {
+            const binary = dec.toString(2).padStart(7, '0');
+            return binary.substring(0, 3) + ' ' + binary.substring(3, 7);
+        }
+
+        /**
+         * Generates the table row HTML for a single ASCII data object.
+         * @param {Object} data - The ASCII character data.
+         * @returns {string} The HTML for the table row.
+         */
+        function createRow(data) {
+            const binaryCode = decTo7BitBinary(data.dec);
+            const charDisplay = (data.char === 'Space' ? '[Space]' : data.char);
+            
+            let charStyle = '';
+            if (data.category === 'control') {
+                // Dim and mono-font for control characters
+                charStyle = 'text-gray-400 mono-font';
+            } else if (data.category === 'letter' || data.category === 'digit') {
+                // Stronger style for common printable characters
+                charStyle = 'font-bold mono-font';
+            }
+
+            return `
+                <tr class="data-row hover:bg-blue-100 transition duration-100">
+                    <td class="data-cell ${charStyle}">${charDisplay}</td>
+                    <td class="data-cell mono-font">${data.dec}</td>
+                    <td class="data-cell mono-font">${data.hex}</td>
+                    <td class="data-cell mono-font text-blue-600 font-semibold">${binaryCode}</td>
+                </tr>
+            `;
+        }
+
+        /**
+         * Renders the ASCII table with optional filtering.
+         * @param {Object[]} [dataArray=ASCII_DATA] - The array of data to render.
+         */
+        function renderTable(dataArray = ASCII_DATA) {
+            tableBody.innerHTML = dataArray.map(createRow).join('');
+        }
+
+        /**
+         * Filters the table based on the user's input in the search box.
+         */
+        function filterTable() {
+            const query = document.getElementById('search-input').value.trim().toLowerCase();
+            
+            if (!query) {
+                renderTable(ASCII_DATA);
+                return;
+            }
+
+            const filteredData = ASCII_DATA.filter(item => {
+                // Check character (handles special names like 'NUL' and 'Space')
+                if (item.char.toLowerCase().includes(query)) return true;
+                
+                // Check Decimal
+                if (item.dec.toString() === query) return true;
+                
+                // Check Hex (must match 'XX' or 'X' format)
+                if (item.hex.toLowerCase().includes(query)) return true;
+
+                // Check 7-bit binary (remove space for checking)
+                const binaryCheck = decTo7BitBinary(item.dec).replace(/\s/g, '');
+                if (binaryCheck.includes(query.replace(/\s/g, ''))) return true;
+
+                return false;
+            });
+
+            renderTable(filteredData);
+        }
+
+        // Initial render when the script loads
+        window.onload = function() {
+            renderTable();
+        };
+    </script>
+</body>
+</html>
