@@ -1,0 +1,8 @@
+The Keto Binary Code (Goal: Ketosis)This code is based on two primary inputs (Carbohydrate Intake and Fat Intake) to switch the body's primary fuel source.1. The Primary Directive (Carbs)The most critical input for the ketogenic diet is restricting net carbohydrate intake.ConditionMaximum ValueState OutputNet Carbs< 20–50 grams/day✅ ALLOWED (Ketosis Triggered)Net Carbs> 50 grams/day❌ FORBIDDEN (Glucose Burning)Food Input Classification (Binary Choice)Food TypeBinary Code (Consumption)ExampleHigh Carb (Grains, Sugar, Fruits, Starch)0 (Exclude)Bread, Pasta, Soda, Bananas, PotatoesHigh Fat/Low Carb (Natural Fats, Meats, Veggies)1 (Include)Olive Oil, Avocados, Steak, Cheese, Leafy Greens2. Fuel Source LogicThe human body operates primarily on an IF/ELSE statement for energy:IF (Glycogen_Stores_Are_Empty AND Insulin_Level_Is_Low) THEN
+    SET Primary_Fuel = FAT
+    PRODUCE KETONES (Begin Ketosis)
+ELSE
+    SET Primary_Fuel = GLUCOSE (Sugar)
+    STORE Excess_Energy AS FAT
+END IF
+The Goal: Force the program (your body) to execute the THEN block by keeping carb intake low (Code 0) and fat intake sufficient (Code 1).
