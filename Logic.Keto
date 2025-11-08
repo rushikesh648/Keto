@@ -1,0 +1,106 @@
+# The Keto Logic Checker
+# 
+# This script defines a core function that processes a meal list and determines 
+# if the total net carbs comply with a hard-coded ketogenic daily limit.
+
+def keto_check_meal(meal_items, daily_carb_limit=25):
+    """
+    Analyzes a list of food items (name and net carbs) and calculates 
+    the total carbohydrate load against a daily limit.
+
+    Args:
+        meal_items (list): A list of tuples, where each tuple is 
+                           (food_name, net_carbs_per_serving).
+        daily_carb_limit (int): The hard-coded maximum net carbs allowed 
+                                for the entire day (default is 25g).
+
+    Returns:
+        tuple: A message string detailing the outcome and the total carbs consumed.
+    """
+    total_carbs = 0.0
+    print("--- Keto Meal Analysis Start ---")
+    
+    # KES-8 Rule 1: Iterate through items and accumulate CARBS (the '0' value)
+    for name, carbs in meal_items:
+        # We use floating point numbers for precision
+        if not isinstance(carbs, (int, float)) or carbs < 0:
+            print(f"Error: Invalid carb value for {name}. Skipping.")
+            continue
+            
+        total_carbs += carbs
+        print(f"  [LOG]: {name.ljust(15)} +{carbs:.1f}g Net Carbs")
+
+    print(f"\n[SUMMARY]: Total Net Carbs in Meal: {total_carbs:.1f}g")
+    
+    # KES-8 Rule 2: Check if the total carb load exceeds the limit
+    if total_carbs > daily_carb_limit:
+        
+        # KES-8 State: Glycolysis Trigger (0000 0000)
+        remaining = total_carbs - daily_carb_limit
+        result_message = (
+            f"FAIL (RED ZONE): Total carbs ({total_carbs:.1f}g) EXCEED "
+            f"the {daily_carb_limit}g daily limit! ({remaining:.1f}g over)."
+        )
+        
+    elif total_carbs > daily_carb_limit * 0.8:
+        
+        # KES-8 State: Warning (Near Limit)
+        remaining = daily_carb_limit - total_carbs
+        result_message = (
+            f"CAUTION (YELLOW ZONE): Total carbs ({total_carbs:.1f}g) are close to "
+            f"the limit. Only {remaining:.1f}g remaining for the day."
+        )
+        
+    else:
+        # KES-8 State: Ketosis Maintained (1111 1111)
+        remaining = daily_carb_limit - total_carbs
+        result_message = (
+            f"PASS (GREEN ZONE): Total carbs ({total_carbs:.1f}g) are safe. "
+            f"You have {remaining:.1f}g remaining for the day."
+        )
+
+    print("--- Keto Meal Analysis End ---")
+    
+    return result_message, total_carbs
+
+# --- Example Usage ---
+
+# Example 1: A perfect Keto meal (Low Carbs)
+keto_friendly_meal = [
+    ("Ribeye Steak", 0.0),
+    ("Spinach (1 cup)", 1.0),
+    ("Butter (1 tbsp)", 0.0),
+    ("Cheese (1 oz)", 1.0)
+]
+
+print(">>> CHECKING EXAMPLE 1: KETO FRIENDLY MEAL <<<")
+result_1, carbs_1 = keto_check_meal(keto_friendly_meal)
+print(result_1)
+print("-" * 40)
+
+
+# Example 2: A carb-heavy meal (Failure)
+carb_heavy_meal = [
+    ("Chicken Breast", 0.0),
+    ("White Rice (1 cup)", 45.0),
+    ("Broccoli (1 cup)", 6.0)
+]
+
+print(">>> CHECKING EXAMPLE 2: CARB HEAVY MEAL <<<")
+result_2, carbs_2 = keto_check_meal(carb_heavy_meal)
+print(result_2)
+print("-" * 40)
+
+
+# Example 3: A meal that gets close to the limit
+near_limit_meal = [
+    ("Salmon", 0.0),
+    ("Avocado", 3.0),
+    ("Almonds (1/4 cup)", 6.0),
+    ("Berries (1/2 cup)", 7.0)
+]
+
+print(">>> CHECKING EXAMPLE 3: NEAR LIMIT MEAL <<<")
+result_3, carbs_3 = keto_check_meal(near_limit_meal)
+print(result_3)
+print("-" * 40)
