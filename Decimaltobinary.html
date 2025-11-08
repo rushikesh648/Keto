@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decimal to Binary Converter</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117; /* GitHub Dark Theme Background */
+            color: #c9d1d9;
+        }
+        .mono-font {
+            font-family: 'Space Mono', monospace;
+        }
+        /* Custom scrollbar for output box */
+        #output-box::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        #output-box::-webkit-scrollbar-thumb {
+            background-color: #30363d; /* Darker scrollbar thumb */
+            border-radius: 4px;
+        }
+        #output-box::-webkit-scrollbar-track {
+            background: #161b22; /* Even darker track */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-xl bg-[#161b22] p-8 md:p-10 rounded-2xl shadow-2xl border border-[#30363d] space-y-8">
+        <header class="text-center">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-[#58a6ff]">Binary Encoder</h1>
+            <p class="mt-2 text-[#8b949e]">Convert any number (0 to 255) into its 8-bit binary code.</p>
+        </header>
+
+        <!-- Input Section -->
+        <div class="space-y-4">
+            <label for="decimal-input" class="block text-sm font-medium">Enter Decimal Number (0 - 255):</label>
+            <input type="number" id="decimal-input" min="0" max="255" placeholder="e.g., 150" 
+                   class="w-full p-4 rounded-lg bg-[#0d1117] border border-[#30363d] text-white text-lg focus:ring-[#58a6ff] focus:border-[#58a6ff] mono-font shadow-inner"
+                   oninput="convertDecimal()">
+            <p id="error-message" class="text-red-400 text-sm h-5"></p>
+        </div>
+
+        <!-- Output Section -->
+        <div class="space-y-4">
+            <label class="block text-sm font-medium">8-Bit Binary Result:</label>
+            <div id="output-box" class="w-full min-h-[6rem] p-4 rounded-lg bg-[#0d1117] border border-[#30363d] mono-font text-3xl font-bold text-green-400 flex items-center justify-center overflow-x-auto select-all">
+                0000 0000
+            </div>
+            
+            <button onclick="copyToClipboard()" id="copy-button" class="w-full py-3 px-4 rounded-lg bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-[#58a6ff] font-semibold transition duration-150 shadow-md flex items-center justify-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                    <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 1 1 0 01-1-1 1 1 0 100-2 4 4 0 00-4 4h3a1 1 0 010 2H7a1 1 0 01-1-1v-.004z" />
+                </svg>
+                <span id="copy-text">Copy Binary Code</span>
+            </button>
+            <div id="copy-message" class="text-center text-sm text-yellow-300 h-5"></div>
+
+        </div>
+
+        <!-- Byte Structure Explanation -->
+        <div class="pt-4 border-t border-[#30363d]">
+            <h2 class="text-xl font-semibold mb-3 text-[#58a6ff]">8-Bit Byte Structure</h2>
+            <div class="flex justify-between text-sm mono-font text-[#8b949e]">
+                <span>128</span>
+                <span>64</span>
+                <span>32</span>
+                <span>16</span>
+                <span>8</span>
+                <span>4</span>
+                <span>2</span>
+                <span>1</span>
+            </div>
+            <div id="weight-breakdown" class="flex justify-between text-lg mono-font font-bold text-green-400 mt-1">
+                <!-- Weights are displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputElement = document.getElementById('decimal-input');
+        const outputBox = document.getElementById('output-box');
+        const errorMessage = document.getElementById('error-message');
+        const weightBreakdown = document.getElementById('weight-breakdown');
+        const copyButton = document.getElementById('copy-button');
+        const copyText = document.getElementById('copy-text');
+        const copyMessage = document.getElementById('copy-message');
+
+        /**
+         * Converts a decimal number (0-255) to a formatted 8-bit binary string
+         * and updates the UI.
+         */
+        function convertDecimal() {
+            const decimal = parseInt(inputElement.value, 10);
+
+            // 1. Input Validation
+            if (isNaN(decimal) || inputElement.value === '') {
+                outputBox.textContent = '0000 0000';
+                errorMessage.textContent = '';
+                updateWeightBreakdown(0);
+                return;
+            }
+
+            if (decimal < 0 || decimal > 255) {
+                outputBox.textContent = '---- ----';
+                errorMessage.textContent = 'Value must be between 0 and 255.';
+                updateWeightBreakdown(0);
+                return;
+            }
+            
+            errorMessage.textContent = '';
+            
+            // 2. Core Conversion Logic
+            // Convert to binary string, pad to 8 bits, and split into two groups of 4
+            let binary = decimal.toString(2).padStart(8, '0');
+            const formattedBinary = binary.substring(0, 4) + ' ' + binary.substring(4, 8);
+            
+            outputBox.textContent = formattedBinary;
+            
+            // 3. Update Weight Breakdown
+            updateWeightBreakdown(decimal);
+        }
+
+        /**
+         * Updates the visual representation of which bit weights are "on" (1).
+         * @param {number} decimal The decimal value being converted.
+         */
+        function updateWeightBreakdown(decimal) {
+            // The place weights for an 8-bit byte
+            const weights = [128, 64, 32, 16, 8, 4, 2, 1];
+            let html = '';
+            let tempDecimal = decimal;
+
+            for (const weight of weights) {
+                let isSet = false;
+                if (tempDecimal >= weight) {
+                    isSet = true;
+                    tempDecimal -= weight;
+                }
+                
+                const bitClass = isSet 
+                    ? 'text-green-400' 
+                    : 'text-[#30363d]'; // Dark grey for off bits
+                
+                html += `<span class="${bitClass}">${isSet ? 1 : 0}</span>`;
+            }
+
+            weightBreakdown.innerHTML = `<div class="flex justify-between w-full">${html}</div>`;
+        }
+
+        /**
+         * Copies the formatted binary output to the clipboard.
+         */
+        function copyToClipboard() {
+            const binaryCode = outputBox.textContent.replace(/\s/g, ''); // Remove space for pure binary
+            
+            // Use document.execCommand('copy') for better compatibility in iframe environments
+            try {
+                const tempInput = document.createElement('input');
+                tempInput.value = binaryCode;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+
+                copyText.textContent = 'Copied!';
+                copyMessage.textContent = `Copied "${binaryCode}" to clipboard.`;
+                setTimeout(() => {
+                    copyText.textContent = 'Copy Binary Code';
+                    copyMessage.textContent = '';
+                }, 2000);
+
+            } catch (err) {
+                console.error('Could not copy text: ', err);
+                copyMessage.textContent = 'Copy failed. Please select the text manually.';
+            }
+        }
+
+        // Initialize the app on load
+        window.onload = function() {
+            convertDecimal(); // Show 0000 0000 initially
+        };
+    </script>
+</body>
+</html>
