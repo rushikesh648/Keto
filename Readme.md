@@ -69,6 +69,8 @@ The KLI gives you the data you need to make fast, informed decisions.
 Do you have a specific food item you want to analyze, or would you like to update an entry in the **Standard Editor**?
 
 sample assembly program for checker:
+```
+bash
 
 ; File: K.asm
 ; Keto Assembly Program — Linux x86_64 example
@@ -93,3 +95,4 @@ _start:
     mov rax, 60         ; syscall: exit
     xor rdi, rdi        ; status 0
     syscall
+```
